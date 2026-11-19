@@ -25,6 +25,15 @@ def validate_values(values):
         if out['cost_per_contact']<=0 or out['budget']<=0: raise ValueError('成本与预算须为正')
     return out
 
+def validate_joint_parameters(params):
+    """联合核算（逐批剔除）参数：min_n 为判定"余样不足"的最小余样量。"""
+    if not isinstance(params,dict) or set(params)-{'min_n'}: raise ValueError('存在未知分析参数')
+    p={'min_n':5}|params
+    v=p['min_n']
+    if isinstance(v,bool) or not isinstance(v,(int,float)) or int(v)!=v or not 2<=v<=5000: raise ValueError('最小余样量必须是2到5000的整数')
+    p['min_n']=int(v)
+    return p
+
 def validate_parameters(params):
     defaults=DOMAIN['defaults']
     if not isinstance(params,dict) or set(params)-set(defaults): raise ValueError('存在未知分析参数')

@@ -7,7 +7,9 @@ from src.models.user import User
 from src.models.study import Study
 from src.models.observation import Observation
 from src.models import run,review,audit
+from src.models import joint as joint_model
 from src.utils.security import hash_password
+from scripts.joint_demo_data import joint_batches
 
 def seed():
     Base.metadata.create_all(engine)
@@ -35,6 +37,14 @@ def seed():
             else: rows=[{'p0':.08+k*.02,'p1':.1+k*.025,'cost_per_contact':.12+k*.04,'budget':3000+k*500}]
             for n,values in enumerate(rows):
                 key=f'DEMO-{k+1}-{n+1:04}'
+                if not db.scalar(select(Observation.id).where(Observation.study_id==study.id,Observation.source_key==key)):
+                    db.add(Observation(study_id=study.id,source_key=key,values=values))
+        for k,(name,rows) in enumerate(joint_batches()):
+            study=db.scalar(select(Study).where(Study.name==name))
+            if not study:
+                study=Study(name=name,source_filename=DOMAIN['slug']+f'-joint-202611-{k+1:02}.csv',description='联合核算演示批次 / 固定种子20261119 / 合成业务观测');db.add(study);db.flush()
+            for n,values in enumerate(rows):
+                key=f'JNT-{k+1:02}-{n+1:04}'
                 if not db.scalar(select(Observation.id).where(Observation.study_id==study.id,Observation.source_key==key)):
                     db.add(Observation(study_id=study.id,source_key=key,values=values))
         db.commit()

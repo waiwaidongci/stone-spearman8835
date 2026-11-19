@@ -6,10 +6,10 @@ from src.config.domain import DOMAIN
 from src.middlewares.auth import current_user,writer,admin
 from src.schemas.study import StudyInput
 from src.schemas.observation import ObservationInput
-from src.schemas.run import RunInput
+from src.schemas.run import RunInput,JointRunInput
 from src.schemas.review import ReviewInput
 from src.controllers import research
-from src.services import runs,studies
+from src.services import runs,studies,joint
 from src.models.audit import Audit
 from src.models.observation import Observation
 from src.services.audits import log
@@ -40,6 +40,16 @@ def list_runs(db=Depends(get_db),user=Depends(current_user)): return runs.list_r
 def create_run(data:RunInput,db=Depends(get_db),user=Depends(writer)): return research.create_run(db,data,user)
 @router.get('/runs/{id}')
 def get_run(id:int,db=Depends(get_db),user=Depends(current_user)): return runs.get(db,id)
+@router.get('/joint-runs')
+def list_joint_runs(db=Depends(get_db),user=Depends(current_user)): return joint.list_runs(db)
+@router.post('/joint-runs')
+def create_joint_run(data:JointRunInput,db=Depends(get_db),user=Depends(writer)): return research.create_joint_run(db,data,user)
+@router.get('/joint-runs/{id}')
+def get_joint_run(id:int,db=Depends(get_db),user=Depends(current_user)): return joint.get(db,id)
+@router.get('/joint-runs/{id}/results')
+def joint_run_results(id:int,db=Depends(get_db),user=Depends(current_user)): return joint.results(db,id)
+@router.post('/joint-runs/{id}/resume')
+def resume_joint_run(id:int,db=Depends(get_db),user=Depends(writer)): return research.resume_joint_run(db,id,user)
 @router.post('/runs/{id}/review')
 def review(id:int,data:ReviewInput,db=Depends(get_db),user=Depends(admin)): return research.review_run(db,id,data,user)
 @router.get('/runs/{id}/export')
